@@ -1,0 +1,14 @@
+
+#include"Class.h"
+
+using namespace std;
+
+int main()
+{
+	char road_path[] = "E:/huawei_code/train_1/road.txt";
+	char car_path[] = "E:/huawei_code/train_1/car.txt";
+	char cross_path[] = "E:/huawei_code/train_1/cross.txt";
+	reader_text reader(road_path, car_path, cross_path);
+	out_put(reader.road);
+	getchar();
+}
