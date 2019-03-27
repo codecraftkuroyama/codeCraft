@@ -18,6 +18,8 @@ int main()
 	G.CreateGraph();
 	cout << "最小生成树：" << endl;
 	G.MiniSpanTree_Prim();
+	cout << "加边环路图：" << endl;
+	G.findCircleRoad();
 	
 	//out_put(reader.road);
 	//getchar();
