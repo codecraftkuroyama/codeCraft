@@ -5,41 +5,99 @@
 #include<iostream>
 #include<fstream>
 #include<ostream>
+#include<vector>
 
 using namespace std;
 
 class reader_text {
 public:
-	int road_num, cross_num;
-	static int car_num;
+	int road_num;
+	static int car_num, cross_num;
 	int **road;
 	int **car;
 	int **cross;
 
-	reader_text(char *text_road, char *text_car, char *text_cross);
+	reader_text(char *text_road,char *text_car,char *text_cross);
 	~reader_text();
 
 };
 
 int reader_text::car_num = 0;
+int reader_text::cross_num = 0;
 
-void out_put(int **anser)
+class count_most_cross
+{
+public:
+	int *count_go_car_num_at_cross[2];
+	int *count_arrive_car_num_at_cross[2];
+	count_most_cross(int **cross, int **car);
+	~count_most_cross();
+};
+
+
+
+
+
+
+void out_put(vector<vector<int>> car_route, char *anserPath, int car_num)
 {
 	ofstream write_file;
-	write_file.open("E:/huawei_code/anser.txt");
-	for (int car_order = 0; car_order < 105; ++car_order)
+	write_file.open(anserPath);
+	for (int car_order = 0; car_order < car_num; ++car_order)
 	{
 		write_file << '(';
-		for (int cross_order = 0; cross_order < sizeof(anser[car_order]) / sizeof(int); ++cross_order)
+		for (int road_order = 0; road_order < car_route[car_order].size(); ++road_order)
 		{
-			write_file << anser[car_order][cross_order];
-			if (cross_order != sizeof(anser[car_order]) / sizeof(int) - 1)
+			write_file << car_route[car_order][road_order];
+			if (road_order != car_route[car_order].size() - 1)
 				write_file << ", ";
 		}
 		write_file << ')' << endl;
 	}
 	write_file.close();
 }
+
+
+
+
+
+
+
+
+count_most_cross::count_most_cross(int **cross, int **car)
+{
+	count_go_car_num_at_cross[0] = new int[reader_text::cross_num];
+	count_arrive_car_num_at_cross[0] = new int[reader_text::cross_num];
+	count_go_car_num_at_cross[1] = new int[reader_text::cross_num];
+	count_arrive_car_num_at_cross[1] = new int[reader_text::cross_num];
+	for (int i = 0; i < reader_text::cross_num; ++i)
+	{
+		count_go_car_num_at_cross[0][i] = cross[i][0];
+		count_arrive_car_num_at_cross[0][i] = cross[i][0];
+		count_go_car_num_at_cross[1][i] = 0;
+		count_arrive_car_num_at_cross[1][i] = 0;
+	}
+	for (int i = 0; i < reader_text::car_num; ++i)
+	{
+		++count_go_car_num_at_cross[1][car[i][1]-1];
+		++count_arrive_car_num_at_cross[1][car[i][2]-1];
+	}
+}
+
+
+count_most_cross::~count_most_cross()
+{
+	for (int i = 0; i < 2; ++i)
+	{
+		delete[]count_go_car_num_at_cross[i];
+		delete[]count_arrive_car_num_at_cross[i];
+	}
+}
+
+
+
+
+
 
 
 
@@ -106,6 +164,12 @@ reader_text::reader_text(char *text_road, char *text_car, char *text_cross)
 						i += 4;
 						break;
 					}
+					else if (data_road[i + 5] < '0' || data_road[i + 5] > '9')
+					{
+						road[road_order][data_order] = (data_road[i] - '0') * 10000 + (data_road[i + 1] - '0') * 1000 + (data_road[i + 2] - '0') * 100 + (data_road[i + 3] - '0')*10 + data_road[i + 4] - '0';
+						i += 5;
+						break;
+					}
 				}
 				++i;
 			}
@@ -168,10 +232,16 @@ reader_text::reader_text(char *text_road, char *text_car, char *text_cross)
 						i += 4;
 						break;
 					}
-					else if (data_car[i + 4] < '0' || data_car[i + 4] > '9')
+					else if (data_car[i + 5] < '0' || data_car[i + 5] > '9')
 					{
-						car[car_order][data_order] = (data_car[i] - '0') * 10000 + (data_car[i + 1] - '0') * 1000 + (data_car[i + 2] - '0') * 100 + (data_car[i + 3]) * 10 - '0' + data_car[i + 4];
-						i += 4;
+						car[car_order][data_order] = (data_car[i] - '0') * 10000 + (data_car[i + 1] - '0') * 1000 + (data_car[i + 2] - '0') * 100 + ((data_car[i + 3])-'0') * 10 + data_car[i + 4] - '0';
+						i += 5;
+						break;
+					}
+					else if (data_car[i + 6] < '0' || data_car[i + 6] > '9')
+					{
+						car[car_order][data_order] = (data_car[i] - '0') * 100000 + (data_car[i + 1] - '0') * 10000 + (data_car[i + 2] - '0') * 1000 + ((data_car[i + 3]) - '0') * 100 + (data_car[i + 4] - '0') * 10 + data_car[i + 5] - '0';
+						i += 6;
 						break;
 					}
 				}
@@ -181,6 +251,12 @@ reader_text::reader_text(char *text_road, char *text_car, char *text_cross)
 	}
 
 	delete[]data_car;
+
+	/*for (int i = 0; i < car_num; i++)
+	{
+		cout << car[i][0] << endl;
+		getchar();
+	}*/
 
 
 	reader.open(text_cross);
@@ -244,7 +320,6 @@ reader_text::reader_text(char *text_road, char *text_car, char *text_cross)
 
 	delete[]data_cross;
 
-
 };
 
 reader_text::~reader_text()
@@ -267,7 +342,6 @@ reader_text::~reader_text()
 	}
 	delete[]cross;
 }
-
 
 
 
